@@ -9,22 +9,21 @@ int main()
 
 	
 	sf::ContextSettings sfmlContextSettings{};
-	sfmlContextSettings.antialiasingLevel = 8;
-	sf::RenderWindow window{ sf::VideoMode(800, 600), "HanaAI", sf::Style::Default, sfmlContextSettings };
+	sfmlContextSettings.antiAliasingLevel = 8;
+	sf::RenderWindow window{ sf::VideoMode({1280, 720}), "HanaAI", sf::Style::Default, sf::State::Windowed, sfmlContextSettings };
 
 	Hana::TestScene scene{ window };
 
 	while (window.isOpen())
 	{
-		sf::Event event{};
-		while (window.pollEvent(event))
+		while (const std::optional<sf::Event> event{ window.pollEvent() })
 		{
-			if (event.type == sf::Event::Closed)
+			if (event->is<sf::Event::Closed>())
 			{
 				window.close();
 			}
 		}
-		sf::Color backgroundColour{ 0xecb0e8ff };
+		constexpr sf::Color backgroundColour{ 0xecb0e8ff };
 		window.clear(backgroundColour);
 
 		scene.Update();

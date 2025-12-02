@@ -171,8 +171,8 @@ namespace Hana
 
 		sf::RectangleShape chassis{ sf::Vector2f(m_width * Global::PIXELS_PER_METRE, m_height * Global::PIXELS_PER_METRE) };
 		chassis.setOrigin(chassis.getSize() / 2.0f); //Centre origin
-		chassis.setPosition(chassisPos.x * Global::PIXELS_PER_METRE, chassisPos.y * Global::PIXELS_PER_METRE);
-		chassis.setRotation(chassisRotAngleDeg);
+		chassis.setPosition({ chassisPos.x * Global::PIXELS_PER_METRE, chassisPos.y * Global::PIXELS_PER_METRE });
+		chassis.setRotation(sf::degrees(chassisRotAngleDeg));
 		chassis.setFillColor(sf::Color::Red);
 
 		_window.draw(chassis);
@@ -185,14 +185,14 @@ namespace Hana
 		
 		for (std::size_t i{ 0 }; i < 4; ++i)
 		{
-			b2Vec2 wheelWorldPos = b2Body_GetWorldPoint(m_physicsBody, m_wheels[i].localPosition);
-			wheel.setPosition(wheelWorldPos.x * Global::PIXELS_PER_METRE, wheelWorldPos.y * Global::PIXELS_PER_METRE);
+			const b2Vec2 wheelWorldPos = b2Body_GetWorldPoint(m_physicsBody, m_wheels[i].localPosition);
+			wheel.setPosition({ wheelWorldPos.x * Global::PIXELS_PER_METRE, wheelWorldPos.y * Global::PIXELS_PER_METRE });
 			float rot = chassisRotAngleDeg;
 			if (m_wheels[i].steerable)
 			{
 				rot += m_currentSteeringAngle * (180.0f / B2_PI);
 			}
-			wheel.setRotation(rot);
+			wheel.setRotation(sf::degrees(rot));
 
 			_window.draw(wheel);
 		}

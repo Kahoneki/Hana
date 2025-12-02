@@ -9,7 +9,7 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Resource-Files/" DESTINATION "${CMAKE_BIN
 add_executable(HanaAI ${HANA_SOURCES})
 
 #SFML
-FetchContent_Declare(sfml GIT_REPOSITORY https://github.com/SFML/SFML.git GIT_TAG 2.6.1)
+FetchContent_Declare(sfml GIT_REPOSITORY https://github.com/SFML/SFML.git GIT_TAG 3.0.2)
 FetchContent_MakeAvailable(sfml)
 target_link_libraries(HanaAI PRIVATE sfml-graphics)
 
