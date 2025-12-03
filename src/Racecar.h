@@ -21,14 +21,14 @@ namespace Hana
 	{
 	public:
 		explicit Racecar() = default;
-		explicit Racecar(const b2WorldId _world);
+		explicit Racecar(SYNTACTIC_CONST b2WorldId _world);
 		~Racecar() = default;
 
 		void FixedUpdate();
 		void Render(sf::RenderWindow& _window) const;
 
-		void SetPosition(const b2Vec2& _pos) SYNTACTIC_CONST { b2Body_SetTransform(m_physicsBody, _pos, b2Body_GetRotation(m_physicsBody)); }
-		[[nodiscard]] b2Vec2 GetPosition() const { return b2Body_GetPosition(m_physicsBody); }
+		inline void SetPosition(const b2Vec2& _pos) SYNTACTIC_CONST { b2Body_SetTransform(m_physicsBody, _pos, b2Body_GetRotation(m_physicsBody)); }
+		[[nodiscard]] inline b2Vec2 GetPosition() const { return b2Body_GetPosition(m_physicsBody); }
 
 
 	private:

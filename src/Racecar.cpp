@@ -2,13 +2,10 @@
 
 #include <iostream>
 
-#include "Global.h"
-
-
 namespace Hana
 {
 
-	Racecar::Racecar(const b2WorldId _world)
+	Racecar::Racecar(SYNTACTIC_CONST b2WorldId _world)
 	{
 		m_mass = 1250.0f;
 
@@ -132,8 +129,6 @@ namespace Hana
 			//=> vMax = sqrt((m_engineForce - rollingResistanceDragMagnitude) / m_airDragCoefficient)
 			const float vMax{ sqrt((m_engineForce - rollingResistanceDragMagnitude) / m_airDragCoefficient) };
 			const float engineBackForce{ m_engineForce * m_engineInefficiencyCoefficient * (speed / vMax) };
-
-			std::cout << "ENGINE BACK FORCE: " << engineBackForce << std::endl;
 			
 			const float totalDragMagnitude{ airDragMagnitude + rollingResistanceDragMagnitude + engineBackForce };
 			b2Body_ApplyForceToCenter(m_physicsBody, totalDragMagnitude * dragDirection, true);

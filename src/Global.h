@@ -17,10 +17,14 @@ namespace Hana
 		static constexpr float METRES_PER_PIXELS{ 1.0f / PIXELS_PER_METRE }; //How many Box2D metres there are for every 1 SFML pixel
 
 		static constexpr float FIXED_UPDATE_TIMESTEP{ 1 / 60.0f };
+
 		
 		static constexpr sf::Keyboard::Key SFML_KEY_ACCELERATE{ sf::Keyboard::Key::W };
 		static constexpr sf::Keyboard::Key SFML_KEY_BRAKE{ sf::Keyboard::Key::S };
 		static constexpr sf::Keyboard::Key SFML_KEY_TURN_LEFT{ sf::Keyboard::Key::A };
 		static constexpr sf::Keyboard::Key SFML_KEY_TURN_RIGHT{ sf::Keyboard::Key::D };
+
+		static constexpr sf::Keyboard::Key SFML_KEY_DECREMENT_TRACK_SUBDIVISIONS{ sf::Keyboard::Key::Num1 };
+		static constexpr sf::Keyboard::Key SFML_KEY_INCREMENT_TRACK_SUBDIVISIONS{ sf::Keyboard::Key::Num2 };
 	};
 }

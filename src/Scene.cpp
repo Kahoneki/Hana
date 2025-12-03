@@ -14,7 +14,6 @@ namespace Hana
 		worldDef.gravity = { 0, 0 }; //top-down so no gravity !!
 		m_world = b2CreateWorld(&worldDef);
 		m_racecar = std::move(Racecar(m_world));
-		m_racecar.SetPosition({ _window.getSize().x / 2 * Global::METRES_PER_PIXELS, _window.getSize().y / 2 * Global::METRES_PER_PIXELS });
 	}
 
 
@@ -37,12 +36,14 @@ namespace Hana
 	void Scene::FixedUpdate()
 	{
 		m_racecar.FixedUpdate();
+		m_track.FixedUpdate(m_world);
 	}
 
 
 
 	void Scene::Draw()
 	{
+		m_track.Render(m_window);
 		m_racecar.Render(m_window);
 	}
 
