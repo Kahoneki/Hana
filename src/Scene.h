@@ -29,6 +29,8 @@ namespace Hana
 		
 		sf::RenderWindow& m_window;
 		b2WorldId m_world;
+
+		sf::View m_camera;
 		
 		Racecar m_racecar;
 		Track m_track;

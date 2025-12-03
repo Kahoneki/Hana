@@ -1,6 +1,9 @@
 #include "Racecar.h"
 
+#include "TimeManager.h"
+
 #include <iostream>
+
 
 namespace Hana
 {
@@ -22,8 +25,12 @@ namespace Hana
 		m_engineInefficiencyCoefficient = 1.0f;
 		m_steeringSpeed = 0.6f;
 		m_maxSteeringAngle = 0.2f;
-		m_tireGrip = 0.8f;
+		m_tireGrip = 2.4f;
 		m_currentSteeringAngle = 0.0f;
+		m_skidMarkLifetime = 5.0f;
+		m_skidMarksStartingOpacity = 100u;
+
+		m_skidMarks = sf::VertexArray(sf::PrimitiveType::Triangles);
 		
 		m_geometry = b2MakeBox(m_width / 2.0f, m_height / 2.0f);
 		
@@ -148,8 +155,34 @@ namespace Hana
 			const b2Vec2 wheelRightNorm{ cos(wheelAngle), sin(wheelAngle) };
 			const b2Vec2 wheelWorldPos{ b2Body_GetWorldPoint(m_physicsBody, m_wheels[i].localPosition) };
 			const b2Vec2 wheelVel{ b2Body_GetWorldPointVelocity(m_physicsBody, wheelWorldPos) };
+
+			//The tire can only support a certain amount of frictional force
+			//If the friction received as a result of the current lateral speed exceeds this threshold, the tire will slide and the car will drift
 			const float lateralSpeed{ b2Dot(wheelVel, wheelRightNorm) }; //component of velocity pointing in rightwards direction
-			const float impulseMagnitude{ -lateralSpeed * massPerWheel * m_tireGrip }; //multiply by grip to allow some sick drifts
+			const float impulseMagnitudeForInfiniteGrip{ -lateralSpeed * massPerWheel }; //the impulse that would be required to remove all lateral velocity (infinite grip)
+			const float maxImpulse{ massPerWheel * 50.0f * m_tireGrip * Global::FIXED_UPDATE_TIMESTEP }; //technically 30.0f is a bit of a hacky workaround to mimic downforce
+			const float impulseMagnitude{ std::clamp(impulseMagnitudeForInfiniteGrip, -maxImpulse, maxImpulse) };
+			
+			if (std::abs(impulseMagnitudeForInfiniteGrip) > maxImpulse)
+			{
+				//Car is drifting, add some skid marks
+				const sf::Color skidColour{ 20, 20, 20, m_skidMarksStartingOpacity };
+				constexpr float skidWidth{ 0.15f };
+				const b2Vec2 dir{ b2Normalize(wheelWorldPos - m_prevWheelPositions[i]) };
+				const b2Vec2 perp{ -dir.y, dir.x };
+				m_skidMarks.append(sf::Vertex({ (m_prevWheelPositions[i].x - perp.x * skidWidth) * Global::PIXELS_PER_METRE, (m_prevWheelPositions[i].y - perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+				m_skidMarks.append(sf::Vertex({ (wheelWorldPos.x - perp.x * skidWidth) * Global::PIXELS_PER_METRE, (wheelWorldPos.y - perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+				m_skidMarks.append(sf::Vertex({ (m_prevWheelPositions[i].x + perp.x * skidWidth) * Global::PIXELS_PER_METRE, (m_prevWheelPositions[i].y + perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+				
+				m_skidMarks.append(sf::Vertex({ (m_prevWheelPositions[i].x + perp.x * skidWidth) * Global::PIXELS_PER_METRE, (m_prevWheelPositions[i].y + perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+				m_skidMarks.append(sf::Vertex({ (wheelWorldPos.x - perp.x * skidWidth) * Global::PIXELS_PER_METRE, (wheelWorldPos.y - perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+				m_skidMarks.append(sf::Vertex({ (wheelWorldPos.x + perp.x * skidWidth) * Global::PIXELS_PER_METRE, (wheelWorldPos.y + perp.y * skidWidth) * Global::PIXELS_PER_METRE }, skidColour));
+
+				m_skidMarkTimeLeft.push_back(m_skidMarkLifetime);
+			}
+			m_prevWheelPositions[i] = wheelWorldPos;
+
+			
 			const b2Vec2 impulse{ wheelRightNorm * impulseMagnitude };
 			b2Body_ApplyLinearImpulse(m_physicsBody, impulse, wheelWorldPos, true);
 		}
@@ -157,8 +190,50 @@ namespace Hana
 
 
 
-	void Racecar::Render(sf::RenderWindow& _window) const
+	void Racecar::Render(sf::RenderWindow& _window)
 	{
+		//Update skid mark times
+		std::size_t skidMarksToRemoveFromArrayStart{ 0 };
+		for (std::size_t i{ 0 }; i < m_skidMarkTimeLeft.size(); ++i)
+		{
+			m_skidMarkTimeLeft[i] -= static_cast<float>(TimeManager::GetDeltaTime());
+			if (m_skidMarkTimeLeft[i] <= 0)
+			{
+				//This group of vertices needs to be removed
+				//Because vertices are added in order of when they are created, all vertices up to this point also need to be removed, so just updating the amount to remove from the start is fine
+				skidMarksToRemoveFromArrayStart = i + 1;
+			}
+		}
+		if (skidMarksToRemoveFromArrayStart != 0)
+		{
+			m_skidMarkTimeLeft.erase(m_skidMarkTimeLeft.begin(), m_skidMarkTimeLeft.begin() + skidMarksToRemoveFromArrayStart);
+
+			//Remove old vertices from vertex array by shifting all other vertices down and resizing array
+			const std::size_t verticesToRemoveFromArrayStart{ skidMarksToRemoveFromArrayStart * 6 };
+			for (std::size_t i{ 0 }; i < m_skidMarks.getVertexCount() - verticesToRemoveFromArrayStart; ++i)
+			{
+				m_skidMarks[i] = m_skidMarks[i + verticesToRemoveFromArrayStart];
+			}
+			m_skidMarks.resize(m_skidMarks.getVertexCount() - verticesToRemoveFromArrayStart);
+		}
+
+
+		//Update remaining skid mark opacities
+		for (std::size_t i{ 0 }; i < m_skidMarkTimeLeft.size(); ++i)
+		{
+			const float percentTimeLeftForCurrentGroupOfVertices{ m_skidMarkTimeLeft[i] / m_skidMarkLifetime }; //range 0-1
+			const std::uint8_t opacity{ static_cast<std::uint8_t>(std::lerp(0.0f, static_cast<float>(m_skidMarksStartingOpacity), percentTimeLeftForCurrentGroupOfVertices)) };
+			const std::size_t startingVertexIndex{ i * 6 };
+			for (std::size_t j{ startingVertexIndex }; j < startingVertexIndex + 6; ++j)
+			{
+				m_skidMarks[j].color.a = opacity;
+			}
+		}
+		
+		//Draw skid marks
+		_window.draw(m_skidMarks);
+		
+		
 		//Draw chassis
 		const b2Vec2 chassisPos{ b2Body_GetPosition(m_physicsBody) };
 		const b2Rot chassisRot{ b2Body_GetRotation(m_physicsBody) };

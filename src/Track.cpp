@@ -7,7 +7,7 @@ namespace Hana
 	Track::Track()
 	{
 		m_wallFriction = 0.5f;
-		m_subdivisions = 0;
+		m_subdivisions = 8;
 		if (!m_arialFont.openFromFile("Resource-Files/arial.ttf")) { throw std::runtime_error("Failed to load arial font."); }
 		m_subdivisionCountChangedLastFrame = false;
 		m_chainBody = b2_nullBodyId;
