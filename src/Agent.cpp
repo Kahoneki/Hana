@@ -5,7 +5,7 @@ namespace Hana
 {
 
 	Agent::Agent(const std::size_t _numInputs, const b2WorldId _world)
-	: m_neuralNetwork(_numInputs, 2)
+		: m_neuralNetwork(_numInputs, { 8 }, 2)
 	{
 		m_racecar = std::move(Racecar(_world));
 		m_fitness = 0.0f;

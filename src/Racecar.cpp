@@ -30,6 +30,9 @@ namespace Hana
 		m_skidMarkLifetime = 5.0f;
 		m_skidMarksStartingOpacity = 100u;
 
+		m_rollingResistanceDragMagnitude = m_rollingResistanceCoefficient * m_mass * 9.81f; //much more impactful at lower speeds
+		m_maxLinearVelocityMagnitude = sqrt((m_engineForce - m_rollingResistanceDragMagnitude) / m_airDragCoefficient);
+
 		m_skidMarks = sf::VertexArray(sf::PrimitiveType::Triangles);
 		
 		m_geometry = b2MakeBox(m_width / 2.0f, m_height / 2.0f);
@@ -151,8 +154,7 @@ namespace Hana
 			//Apply drag
 			const b2Vec2 dragDirection{ b2Normalize({ -vel.x, -vel.y }) };
 			const float airDragMagnitude{ m_airDragCoefficient * speed * speed }; //proportional to v^2 for high speeds
-			const float rollingResistanceDragMagnitude{ m_rollingResistanceCoefficient * m_mass * 9.81f }; //much more impactful at lower speeds
-
+			
 			//Estimate the drag from engine gear back-force (since the car realistically isn't in neutral)
 			//This will depend on the engine's max force, its efficiency, and how fast it's going relative to its max speed
 			//Need max speed:
@@ -161,10 +163,9 @@ namespace Hana
 			//=> m_engineForce = (m_airDragCoefficient * vMax^2) + rollingResistanceDragMagnitude
 			//=> vMax^2 = (m_engineForce - rollingResistanceDragMagnitude) / m_airDragCoefficient
 			//=> vMax = sqrt((m_engineForce - rollingResistanceDragMagnitude) / m_airDragCoefficient)
-			const float vMax{ sqrt((m_engineForce - rollingResistanceDragMagnitude) / m_airDragCoefficient) };
-			const float engineBackForce{ m_engineForce * m_engineInefficiencyCoefficient * (speed / vMax) };
+			const float engineBackForce{ m_engineForce * m_engineInefficiencyCoefficient * (speed / m_maxLinearVelocityMagnitude) };
 			
-			const float totalDragMagnitude{ airDragMagnitude + rollingResistanceDragMagnitude + engineBackForce };
+			const float totalDragMagnitude{ airDragMagnitude + m_rollingResistanceDragMagnitude + engineBackForce };
 			b2Body_ApplyForceToCenter(m_physicsBody, totalDragMagnitude * dragDirection, true);
 		}
 
@@ -294,4 +295,22 @@ namespace Hana
 			_window.draw(wheel);
 		}
 	}
+
+
+
+	float Racecar::RaycastWithTrackForNeuralNetwork(const b2WorldId& _world, const Track& _track, const b2Vec2 _dir) const
+	{
+		constexpr float maxRayLength{ 1000.0f };
+
+		const b2Vec2 start{ GetPosition() };
+		const b2Vec2 translation{ b2Normalize(b2Body_GetWorldVector(m_physicsBody, _dir)) * maxRayLength };
+		b2QueryFilter filter{ b2DefaultQueryFilter() };
+		filter.categoryBits = std::to_underlying(Global::PHYSICS_COLLISION_LAYER::CAR);
+		filter.maskBits = std::to_underlying(Global::PHYSICS_COLLISION_LAYER::TRACK);
+
+		const b2RayResult result{ b2World_CastRayClosest(_world, start, translation, filter) };
+
+		return (result.hit) ? (result.fraction) : (1.0f);
+	}
+
 }

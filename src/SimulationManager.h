@@ -17,11 +17,11 @@ namespace Hana
 		: m_window(_window)
 		{
 			m_numAgents = 100;
-			m_numInputs = 4;
+			m_numInputs = 13;
 			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs);
 			m_maxGenerations = 500;
 			m_timePerGeneration = 60.0f;
-			m_timeSpeedupFactor = 10.0f;
+			m_timeSpeedupFactor = 30.0f;
 			m_elitismRatio = 0.05f;
 			m_mutationRate = 0.15f;
 			m_mutationStrength = 0.3f;
@@ -62,12 +62,22 @@ namespace Hana
 						{
 							const b2Vec2 pos{ agent.m_racecar.GetPosition() };
 							const b2Rot angle{ agent.m_racecar.GetRotation() };
-					
+							const b2Vec2 linearVelocity{ agent.m_racecar.GetLocalLinearVelocity() };
+
 							std::vector<float> inputs(m_numInputs);
-							inputs[0] = pos.x / 400.0f;
-							inputs[1] = pos.y / 400.0f;
-							inputs[2] = angle.s;
-							inputs[3] = angle.c;
+							inputs[0] = angle.s;
+							inputs[1] = angle.c;
+							inputs[2] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0, 1 });
+							inputs[3] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 1, 0 });
+							inputs[4] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0, -1 });
+							inputs[5] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -1, 0 });
+							inputs[6] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.2f, 1 });
+							inputs[7] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.2f, -1 });
+							inputs[8] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.2f, -1 });
+							inputs[9] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.2f, 1 });
+							inputs[10] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+							inputs[11] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+							inputs[12] = agent.m_racecar.GetLocalAngularVelocity();
 
 							std::vector<float> outputs(2);
 							agent.m_neuralNetwork.Process(inputs, outputs);
@@ -113,7 +123,7 @@ namespace Hana
 				const std::uint32_t numAgentsToPassThroughUnmodified{ static_cast<std::uint32_t>(m_numAgents * m_elitismRatio) };
 
 				//Go through all (non-excluded agents) and mutate their neural networks
-				for (std::size_t i{ numAgentsToPassThroughUnmodified - 1 }; i < m_numAgents; ++i)
+				for (std::size_t i{ numAgentsToPassThroughUnmodified }; i < m_numAgents; ++i)
 				{
 					Agent& agent{ m_scene->m_agents[i] };
 					

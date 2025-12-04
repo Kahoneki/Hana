@@ -36,6 +36,9 @@ namespace Hana
 		
 		void FixedUpdate();
 		void Render(sf::RenderWindow& _window);
+		
+		//Cast a ray in car-local-space direction _dir against the track and receive the length of the ray segment in range 0 to 1 (1 is max distance / no hit)
+		[[nodiscard]] float RaycastWithTrackForNeuralNetwork(const b2WorldId& _world, const Track& _track, const b2Vec2 _dir) const;
 
 		inline void SetInput(const RACECAR_INPUT _input, const float _val) { m_inputs[_input] = _val; }
 		inline void SetPosition(const b2Vec2& _pos) SYNTACTIC_CONST { b2Body_SetTransform(m_physicsBody, _pos, b2Body_GetRotation(m_physicsBody)); }
@@ -44,6 +47,9 @@ namespace Hana
 		[[nodiscard]] inline float GetInput(const RACECAR_INPUT _input) const { return m_inputs.at(_input); }
 		[[nodiscard]] inline b2Vec2 GetPosition() const { return b2Body_GetPosition(m_physicsBody); }
 		[[nodiscard]] inline b2Rot GetRotation() const { return b2Body_GetRotation(m_physicsBody); }
+		[[nodiscard]] inline b2Vec2 GetLocalLinearVelocity() const { return b2Body_GetLocalVector(m_physicsBody, b2Body_GetLinearVelocity(m_physicsBody)); }
+		[[nodiscard]] inline float GetMaxLinearVelocityMagnitude() const { return m_maxLinearVelocityMagnitude; }
+		[[nodiscard]] inline float GetLocalAngularVelocity() const { return b2Body_GetAngularVelocity(m_physicsBody); }
 
 
 	private:
@@ -61,6 +67,9 @@ namespace Hana
 		float m_steeringSpeed; //rads per second
 		float m_maxSteeringAngle; //rads
 		float m_tireGrip;
+
+		float m_rollingResistanceDragMagnitude;
+		float m_maxLinearVelocityMagnitude;
 
 		b2Polygon m_geometry;
 		b2BodyId m_physicsBody;
