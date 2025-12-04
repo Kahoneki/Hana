@@ -17,16 +17,19 @@ namespace Hana
 		: m_window(_window)
 		{
 			m_numAgents = 100;
-			m_numInputs = 13;
+			m_numInputs = 10;
 			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs);
 			m_maxGenerations = 500;
 			m_timePerGeneration = 60.0f;
-			m_timeSpeedupFactor = 30.0f;
+			m_timeSpeedupFactor = 1.0f;
 			m_elitismRatio = 0.05f;
 			m_mutationRate = 0.15f;
 			m_mutationStrength = 0.3f;
 			m_tournamentSize = 5;
 			m_timestepAccumulator = 0.0f;
+
+			m_speedChangedLastFrame = false;
+			if (!m_arialFont.openFromFile("Resource-Files/arial.ttf")) { throw std::runtime_error("Failed to load arial font."); }
 		}
 		~SimulationManager() = default;
 
@@ -65,19 +68,16 @@ namespace Hana
 							const b2Vec2 linearVelocity{ agent.m_racecar.GetLocalLinearVelocity() };
 
 							std::vector<float> inputs(m_numInputs);
-							inputs[0] = angle.s;
-							inputs[1] = angle.c;
-							inputs[2] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0, 1 });
-							inputs[3] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 1, 0 });
-							inputs[4] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0, -1 });
-							inputs[5] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -1, 0 });
-							inputs[6] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.2f, 1 });
-							inputs[7] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.2f, -1 });
-							inputs[8] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.2f, -1 });
-							inputs[9] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.2f, 1 });
-							inputs[10] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
-							inputs[11] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
-							inputs[12] = agent.m_racecar.GetLocalAngularVelocity();
+							inputs[0] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -1.0f, 0.0f });
+							inputs[1] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.7f, -0.7f });
+							inputs[2] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.38f, -0.92f });
+							inputs[3] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.0f, -1.0f });
+							inputs[4] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.38f, -0.92f });
+							inputs[5] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.7f, -0.7f });
+							inputs[6] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 1.0f, 0.0f });
+							inputs[7] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+							inputs[8] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+							inputs[9] = agent.m_racecar.GetLocalAngularVelocity();
 
 							std::vector<float> outputs(2);
 							agent.m_neuralNetwork.Process(inputs, outputs);
@@ -99,10 +99,30 @@ namespace Hana
 						m_timestepAccumulator -= Global::FIXED_UPDATE_TIMESTEP;
 					}
 					
+					if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_DECREMENT_SPEED_COUNTER) XOR sf::Keyboard::isKeyPressed(Global::SFML_KEY_INCREMENT_SPEED_COUNTER) XOR sf::Keyboard::isKeyPressed(Global::SFML_KEY_DECREMENT_SPEED_COUNTER_10) XOR sf::Keyboard::isKeyPressed(Global::SFML_KEY_INCREMENT_SPEED_COUNTER_10))
+					{
+						if (!m_speedChangedLastFrame)
+						{
+							m_timeSpeedupFactor += (sf::Keyboard::isKeyPressed(Global::SFML_KEY_DECREMENT_SPEED_COUNTER) ? -1 : (sf::Keyboard::isKeyPressed(Global::SFML_KEY_INCREMENT_SPEED_COUNTER) ? 1 : (sf::Keyboard::isKeyPressed(Global::SFML_KEY_INCREMENT_SPEED_COUNTER_10) ? 10 : -10)));
+							m_timeSpeedupFactor = std::clamp(m_timeSpeedupFactor, 1.0f, 1000.0f);
+
+							m_speedChangedLastFrame = true;
+						}
+					}
+					else
+					{
+						m_speedChangedLastFrame = false;
+					}
+
 					//Render
 					constexpr sf::Color backgroundColour{ 0xecb0e8ff };
 					m_window.clear(backgroundColour);
 					m_scene->Draw();
+
+					const sf::String speedString{ "SPEED: " + std::to_string(m_timeSpeedupFactor) };
+					const sf::Text speedText{ m_arialFont, speedString };
+					m_window.draw(speedText);
+
 					m_window.display();
 				}
 
@@ -163,6 +183,9 @@ namespace Hana
 		float m_mutationRate; //percent chance for any given weight/bias to mutate on a neural network between generations
 		float m_mutationStrength; //when mutating, weights/biases will be multiplied by a random value in the range (-1 to 1) * m_mutationStrength
 		std::uint32_t m_tournamentSize; //when mutating an agent, this many agents will be randomly selected from the set of all agents, the best one (determined by fitness) will be used as the basis for the agent's new weights/biases
+
+		bool m_speedChangedLastFrame;
+		sf::Font m_arialFont;
 	};
 
 }

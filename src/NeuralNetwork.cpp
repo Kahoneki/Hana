@@ -45,6 +45,8 @@ namespace Hana
 		{
 			for (std::size_t neuronCounter{ 0 }; neuronCounter < m_layerSizes[layerCounter]; ++neuronCounter)
 			{
+				m_neurons[layerCounter][neuronCounter] = 0.0f;
+
 				//Loop through all neurons in the previous layer
 				for (std::size_t prevLayerNeuronCounter{ 0 }; prevLayerNeuronCounter < m_layerSizes[layerCounter - 1]; ++prevLayerNeuronCounter)
 				{

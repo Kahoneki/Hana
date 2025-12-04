@@ -35,6 +35,11 @@ namespace Hana
 		static constexpr sf::Keyboard::Key SFML_KEY_DECREMENT_TRACK_SUBDIVISIONS{ sf::Keyboard::Key::Num1 };
 		static constexpr sf::Keyboard::Key SFML_KEY_INCREMENT_TRACK_SUBDIVISIONS{ sf::Keyboard::Key::Num2 };
 
+		static constexpr sf::Keyboard::Key SFML_KEY_DECREMENT_SPEED_COUNTER_10{ sf::Keyboard::Key::Num3 };
+		static constexpr sf::Keyboard::Key SFML_KEY_DECREMENT_SPEED_COUNTER{ sf::Keyboard::Key::Num4 };
+		static constexpr sf::Keyboard::Key SFML_KEY_INCREMENT_SPEED_COUNTER{ sf::Keyboard::Key::Num5 };
+		static constexpr sf::Keyboard::Key SFML_KEY_INCREMENT_SPEED_COUNTER_10{ sf::Keyboard::Key::Num6 };
+
 		
 
 		[[nodiscard]] static inline float RandomFloat(const float _min, const float _max)

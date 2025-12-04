@@ -6,7 +6,7 @@ namespace Hana
 
 	Track::Track()
 	{
-		m_wallFriction = 0.5f;
+		m_wallFriction = 10.0f;
 		m_subdivisions = 8;
 		if (!m_arialFont.openFromFile("Resource-Files/arial.ttf")) { throw std::runtime_error("Failed to load arial font."); }
 		m_subdivisionCountChangedLastFrame = false;
@@ -131,7 +131,7 @@ namespace Hana
 		{
 			const sf::String subdivisionsString{ "SUBDIVISIONS: " + std::to_string(m_subdivisions) };
 			const sf::Text subdivisionsText{ m_arialFont, subdivisionsString };
-			_window.draw(subdivisionsText);
+			//_window.draw(subdivisionsText);
 		}
 	}
 

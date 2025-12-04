@@ -106,43 +106,40 @@ namespace Hana
 		const float forcePerWheel{ m_engineForce / divider };
 
 //		if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_TURN_LEFT))
-		if (m_inputs[RACECAR_INPUT::STEERING] < -0.25f)
-		{
-			m_currentSteeringAngle -= m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
-		}
+		//if (m_inputs[RACECAR_INPUT::STEERING] < -0.25f)
+		//{
+		//	m_currentSteeringAngle -= m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
+		//}
 //		else if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_TURN_RIGHT))
-		else if (m_inputs[RACECAR_INPUT::STEERING] > 0.25f)
+		//else if (m_inputs[RACECAR_INPUT::STEERING] > 0.25f)
 		{
-			m_currentSteeringAngle += m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
+			m_currentSteeringAngle += m_inputs[RACECAR_INPUT::STEERING] * m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
 		}
-		else
-		{
-			//Centre steering
-			if (m_currentSteeringAngle > 0) { m_currentSteeringAngle -= m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP; }
-			if (m_currentSteeringAngle < 0) { m_currentSteeringAngle += m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP; }
+		//else
+		//{
+		//	//Centre steering
+		//	if (m_currentSteeringAngle > 0) { m_currentSteeringAngle -= m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP; }
+		//	if (m_currentSteeringAngle < 0) { m_currentSteeringAngle += m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP; }
 
-			//Snap to 0 if close
-			if (std::abs(m_currentSteeringAngle) < 0.05f) { m_currentSteeringAngle = 0.0f; }
-		}
+		//	//Snap to 0 if close
+		//	if (std::abs(m_currentSteeringAngle) < 0.05f) { m_currentSteeringAngle = 0.0f; }
+		//}
 
 		m_currentSteeringAngle = std::clamp(m_currentSteeringAngle, -m_maxSteeringAngle, m_maxSteeringAngle);
 		
 //		if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_ACCELERATE) XOR sf::Keyboard::isKeyPressed(Global::SFML_KEY_BRAKE))
-		if (m_inputs[RACECAR_INPUT::ACCELERATION] < -0.25f XOR m_inputs[RACECAR_INPUT::ACCELERATION] > 0.25f)
+		for (std::size_t i{ 0 }; i < 4; ++i)
 		{
-			for (std::size_t i{ 0 }; i < 4; ++i)
+			if (m_wheels[i].powered)
 			{
-				if (m_wheels[i].powered)
-				{
-					float wheelAngle = b2Rot_GetAngle(rot);
-					if (m_wheels[i].steerable) { wheelAngle += m_currentSteeringAngle; }
+				float wheelAngle = b2Rot_GetAngle(rot);
+				if (m_wheels[i].steerable) { wheelAngle += m_currentSteeringAngle; }
 
-					const b2Vec2 wheelForward{ sin(wheelAngle), -cos(wheelAngle) };
-					const b2Vec2 wheelWorldPos{ b2Body_GetWorldPoint(m_physicsBody, m_wheels[i].localPosition) };
-					const b2Vec2 force{ wheelForward * forcePerWheel };
+				const b2Vec2 wheelForward{ sin(wheelAngle), -cos(wheelAngle) };
+				const b2Vec2 wheelWorldPos{ b2Body_GetWorldPoint(m_physicsBody, m_wheels[i].localPosition) };
+				const b2Vec2 force{ wheelForward * forcePerWheel };
 //					b2Body_ApplyForce(m_physicsBody, sf::Keyboard::isKeyPressed(Global::SFML_KEY_ACCELERATE) ? force : -force, wheelWorldPos, true);
-					b2Body_ApplyForce(m_physicsBody, m_inputs[RACECAR_INPUT::ACCELERATION] > 0.25f ? force : -force, wheelWorldPos, true);
-				}
+				b2Body_ApplyForce(m_physicsBody, m_inputs[RACECAR_INPUT::ACCELERATION] * force, wheelWorldPos, true);
 			}
 		}
 
@@ -310,7 +307,7 @@ namespace Hana
 
 		const b2RayResult result{ b2World_CastRayClosest(_world, start, translation, filter) };
 
-		return (result.hit) ? (result.fraction) : (1.0f);
+		return (result.hit) ? (1.0f - result.fraction) : (0.0f);
 	}
 
 }
