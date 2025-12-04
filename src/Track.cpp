@@ -52,7 +52,7 @@ namespace Hana
 				const b2Vec2 dir{ b2Normalize(nextSplinePos - splinePos) };
 				const b2Vec2 perp{ -dir.y, dir.x }; //Points perpendicularly (inwardly) to the way the track is facing at this node
 
-				const float w{ lerp(w1, w2, t) };
+				const float w{ std::lerp(w1, w2, t) };
 				
 				m_innerChainVertices.push_back(splinePos + perp * (w / 2));
 				m_outerChainVertices.push_back(splinePos - perp * (w / 2));

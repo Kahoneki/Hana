@@ -123,7 +123,7 @@ namespace Hana
 					for (std::uint32_t tournamentAgent{ 0 }; tournamentAgent < m_tournamentSize; ++tournamentAgent)
 					{
 						const std::size_t agentIndex{ Global::RandomIndex(0, m_numAgents - 1) };
-						const std::uint32_t agentFitness{ m_scene->m_agents[agentIndex].m_fitness };
+						const std::uint32_t agentFitness{ static_cast<std::uint32_t>(m_scene->m_agents[agentIndex].m_fitness) };
 						if (agentFitness > bestFitnessFound)
 						{
 							bestFitnessFound = agentFitness;
