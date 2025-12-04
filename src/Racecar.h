@@ -1,14 +1,22 @@
 #pragma once
 
+#include "Global.h"
+#include "Track.h"
+
 #include <box2d/box2d.h>
 #include <SFML/Graphics.hpp>
-
-#include "Global.h"
 
 
 namespace Hana
 {
 
+	enum class RACECAR_INPUT
+	{
+		ACCELERATION,	//-1 to 1 analogue
+		STEERING,		//-1 to 1 analogue
+	};
+	
+	
 	struct Wheel
 	{
 		b2Vec2 localPosition; //Position relative to the car's centre
@@ -24,11 +32,16 @@ namespace Hana
 		explicit Racecar(SYNTACTIC_CONST b2WorldId _world);
 		~Racecar() = default;
 
+		void Reset(const Track& _track);
+		
 		void FixedUpdate();
 		void Render(sf::RenderWindow& _window);
 
+		inline void SetInput(const RACECAR_INPUT _input, const float _val) { m_inputs[_input] = _val; }
 		inline void SetPosition(const b2Vec2& _pos) SYNTACTIC_CONST { b2Body_SetTransform(m_physicsBody, _pos, b2Body_GetRotation(m_physicsBody)); }
 		inline void SetRotation(const b2Rot& _rot) SYNTACTIC_CONST { b2Body_SetTransform(m_physicsBody, b2Body_GetPosition(m_physicsBody), _rot); }
+
+		[[nodiscard]] inline float GetInput(const RACECAR_INPUT _input) const { return m_inputs.at(_input); }
 		[[nodiscard]] inline b2Vec2 GetPosition() const { return b2Body_GetPosition(m_physicsBody); }
 		[[nodiscard]] inline b2Rot GetRotation() const { return b2Body_GetRotation(m_physicsBody); }
 
@@ -61,6 +74,8 @@ namespace Hana
 		float m_skidMarkLifetime;
 		std::uint8_t m_skidMarksStartingOpacity; //range 0-255
 		std::array<b2Vec2, 4> m_prevWheelPositions;
+
+		std::unordered_map<RACECAR_INPUT, float> m_inputs;
 	};
 	
 }

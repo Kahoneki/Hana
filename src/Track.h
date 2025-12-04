@@ -28,6 +28,7 @@ namespace Hana
 		
 		inline void AddNode(const TrackNode& _node) { m_nodes.push_back(_node); }
 		[[nodiscard]] inline const TrackNode& GetNode(const std::size_t _index) const { return m_nodes[_index]; }
+		[[nodiscard]] inline std::size_t GetNumNodes() const { return m_nodes.size(); }
 
 		void FixedUpdate(SYNTACTIC_CONST b2WorldId& _world);
 		void Render(sf::RenderWindow& _window) const;

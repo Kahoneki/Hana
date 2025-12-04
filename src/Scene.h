@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Racecar.h"
+#include "Agent.h"
 #include "Track.h"
 
 #include <box2d/box2d.h>
@@ -12,6 +12,10 @@ namespace Hana
 
 	class Scene
 	{
+		template<std::derived_from<Scene> SceneType>
+		friend class SimulationManager;
+		
+		
 	public:
 		virtual ~Scene() = default;
 
@@ -19,7 +23,7 @@ namespace Hana
 
 
 	protected:
-		explicit Scene(sf::RenderWindow& _window);
+		explicit Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs);
 		
 		virtual void FixedUpdate() final;
 		virtual void Draw() final;
@@ -32,7 +36,7 @@ namespace Hana
 
 		sf::View m_camera;
 		
-		Racecar m_racecar;
+		std::vector<Agent> m_agents;
 		Track m_track;
 	};
 	

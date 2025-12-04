@@ -7,21 +7,26 @@
 namespace Hana
 {
 
-	Scene::Scene(sf::RenderWindow& _window)
+	Scene::Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs)
 	: m_window(_window)
 	{
 		b2WorldDef worldDef{ b2DefaultWorldDef() };
 		worldDef.gravity = { 0, 0 }; //top-down so no gravity !!
 
 		m_world = b2CreateWorld(&worldDef);
-		m_racecar = std::move(Racecar(m_world));
+
+		m_agents.reserve(_numAgents);
+		for (std::size_t i{ 0 }; i < _numAgents; ++i)
+		{
+			m_agents.emplace_back(_numInputs, m_world);
+		}
 		
-		m_camera.setCenter({ m_racecar.GetPosition().x * Global::PIXELS_PER_METRE, m_racecar.GetPosition().y * Global::PIXELS_PER_METRE });
-		m_camera.setSize({ 1280, 720 });
-		m_camera.setRotation(sf::radians(b2Rot_GetAngle(m_racecar.GetRotation())));
+		m_camera.setSize({ 4800, 2700 }); //16:9
+		m_camera.setCenter({ 600, 1200 });
 		_window.setView(m_camera);
 	}
 
+	
 
 	void Scene::Update()
 	{
@@ -36,11 +41,15 @@ namespace Hana
 		}
 		Draw();
 	}
+
 	
 
 	void Scene::FixedUpdate()
 	{
-		m_racecar.FixedUpdate();
+		for (Agent& agent : m_agents)
+		{
+			agent.m_racecar.FixedUpdate();
+		}
 		m_track.FixedUpdate(m_world);
 	}
 
@@ -48,11 +57,12 @@ namespace Hana
 
 	void Scene::Draw()
 	{
-		m_camera.setCenter({ m_racecar.GetPosition().x * Global::PIXELS_PER_METRE, m_racecar.GetPosition().y * Global::PIXELS_PER_METRE });
-		m_camera.setRotation(sf::radians(b2Rot_GetAngle(m_racecar.GetRotation())));
 		m_window.setView(m_camera);
 		m_track.Render(m_window);
-		m_racecar.Render(m_window);
+		for (Agent& agent : m_agents)
+		{
+			agent.m_racecar.Render(m_window);
+		}
 	}
 
 }

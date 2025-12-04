@@ -4,12 +4,9 @@
 namespace Hana
 {
 
-	TestScene::TestScene(sf::RenderWindow& _window)
-	: Scene(_window)
+	TestScene::TestScene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs)
+	: Scene(_window, _numAgents, _numInputs)
 	{
-		m_racecar.SetPosition({ 50.0f, 30.0f });
-		m_racecar.SetRotation(b2MakeRot(B2_PI / 2.0f));
-
 		m_track.AddNode({ {50.0f, 30.0f}, 20.0f });    //Start Line
 		m_track.AddNode({ {150.0f, 30.0f}, 20.0f });   //Main Straight
 		m_track.AddNode({ {250.0f, 30.0f}, 20.0f });   //Speed Trap

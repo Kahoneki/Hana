@@ -81,6 +81,8 @@ namespace Hana
 		chainDef.isLoop = true;
 		chainDef.materialCount = 1;
 		chainDef.materials = &chainMaterial;
+		chainDef.filter.categoryBits = std::to_underlying(Global::PHYSICS_COLLISION_LAYER::TRACK);
+		chainDef.filter.maskBits = std::to_underlying(Global::PHYSICS_COLLISION_LAYER::CAR);
 		m_innerChain = b2CreateChain(m_chainBody, &chainDef);
 
 		chainDef.points = m_outerChainVertices.data();

@@ -17,3 +17,8 @@ target_link_libraries(HanaAI PRIVATE sfml-graphics)
 FetchContent_Declare(box2d GIT_REPOSITORY https://github.com/erincatto/box2d.git GIT_TAG v3.1.1)
 FetchContent_MakeAvailable(box2d)
 target_link_libraries(HanaAI PRIVATE box2d)
+
+##Google Highway
+#FetchContent_Declare(hwy GIT_REPOSITORY https://github.com/google/highway.git GIT_TAG 1.3.0)
+#FetchContent_MakeAvailable(hwy)
+#target_link_libraries(HanaAI PRIVATE hwy)
