@@ -22,3 +22,14 @@ target_link_libraries(HanaAI PRIVATE box2d)
 #FetchContent_Declare(hwy GIT_REPOSITORY https://github.com/google/highway.git GIT_TAG 1.3.0)
 #FetchContent_MakeAvailable(hwy)
 #target_link_libraries(HanaAI PRIVATE hwy)
+
+FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui GIT_TAG v1.92.5)
+FetchContent_MakeAvailable(imgui)
+
+#ImGui-SFML
+FetchContent_Declare(imgui-sfml GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git GIT_TAG master)
+set(IMGUI_DIR ${imgui_SOURCE_DIR})
+set(IMGUI_SFML_FIND_SFML OFF CACHE BOOL "Disable finding SFML" FORCE)
+set(IMGUI_SFML_IMGUI_DEMO OFF CACHE BOOL "Disable demo" FORCE)
+FetchContent_MakeAvailable(imgui-sfml)
+target_link_libraries(HanaAI PRIVATE ImGui-SFML::ImGui-SFML)
