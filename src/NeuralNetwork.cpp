@@ -1,6 +1,7 @@
 #include "NeuralNetwork.h"
 
 #include "Global.h"
+#include <iostream>
 
 
 namespace Hana

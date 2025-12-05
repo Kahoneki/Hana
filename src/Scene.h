@@ -38,6 +38,10 @@ namespace Hana
 		
 		std::vector<Agent> m_agents;
 		Track m_track;
+
+		bool m_followBestAgent; //Assumes agents vector is sorted (gets sorted by simulation manager) - set by simulation manager
+		float m_followBestAgentZoomLevel; //When following best agent, this changes the camera's zoom - set by simulation manager
+		sf::Vector2u m_followBestAgentBaseCameraSize; //When following best agent, this is the base camera size that m_followBestAgentZoomLevel will modify
 	};
 	
 }

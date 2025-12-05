@@ -23,7 +23,11 @@ namespace Hana
 		
 		m_camera.setSize({ 4800, 2700 }); //16:9
 		m_camera.setCenter({ 600, 1200 });
+		m_followBestAgentBaseCameraSize = { 1280, 720 };
 		_window.setView(m_camera);
+
+		m_followBestAgent = false;
+		m_followBestAgentZoomLevel = 1.0f;
 	}
 
 	
@@ -57,6 +61,18 @@ namespace Hana
 
 	void Scene::Draw()
 	{
+		if (m_followBestAgent && m_agents.size() != 0)
+		{
+			m_camera.setSize({ m_followBestAgentBaseCameraSize.x * m_followBestAgentZoomLevel, m_followBestAgentBaseCameraSize.y * m_followBestAgentZoomLevel });
+			m_camera.setCenter({ m_agents[0].m_racecar.GetPosition().x * Global::PIXELS_PER_METRE, m_agents[0].m_racecar.GetPosition().y * Global::PIXELS_PER_METRE });
+			m_camera.setRotation(sf::radians(b2Rot_GetAngle(m_agents[0].m_racecar.GetRotation())));
+		}
+		else
+		{
+			m_camera.setSize({ 4800, 2700 }); //16:9
+			m_camera.setCenter({ 600, 1200 });
+			m_camera.setRotation(sf::Angle::Zero);
+		}
 		m_window.setView(m_camera);
 		m_track.Render(m_window);
 		for (Agent& agent : m_agents)

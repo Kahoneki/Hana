@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <imgui.h>
+#include <imgui-SFML.h>
 
 
 namespace Hana
@@ -87,17 +88,47 @@ namespace Hana
 		{
 			m_scene->Draw();
 
-
 			//ImGui
 			ImGui::Begin("Options");
+
+			ImGui::SeparatorText("Simulation Speed");
+			if (ImGui::DragFloat("##Speed", &m_timeSpeedupFactor, 0.1f, 1.0f, 1000.0f, "%.2fx"))
+			{
+				m_timeSpeedupFactor = std::clamp(m_timeSpeedupFactor, 1.0f, 1000.0f);
+			}
+			
+			ImGui::SeparatorText("Evolution Settings");
+			ImGui::SliderFloat("Mutation Rate", &m_mutationRate, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Mutation Strength", &m_mutationStrength, 0.0f, 2.0f, "%.2f");
+
+			ImGui::SeparatorText("Stats");
+			ImGui::Text("Current Generation: %zu", m_currentGeneration);
+			ImGui::Text("Best Fitness: %.4f", m_scene->m_agents[0].m_fitness);
+			ImGui::Text("Worst Fitness: %.4f", m_scene->m_agents[m_scene->m_agents.size() - 1].m_fitness);
+
+			ImGui::SeparatorText("Camera");
+			if (m_scene->m_followBestAgent)
+			{
+				if (ImGui::Button("View All Agents"))
+				{
+					m_scene->m_followBestAgent = false;
+				}
+				
+			}
+			else
+			{
+				//No concept of the "best agent" on generation 0
+				if (m_currentGeneration != 0)
+				{
+					if (ImGui::Button("View Best Agent"))
+					{
+						m_scene->m_followBestAgent = true;
+					}
+				}
+			}
+
 			ImGui::End();
-
-
-			//const sf::String speedString{ "SPEED: " + std::to_string(m_timeSpeedupFactor) };
-			//const sf::Text speedText{ m_arialFont, speedString };
-			//m_window.draw(speedText);
-
-			m_window.display();
+			ImGui::SFML::Render(m_window);
 		}
 		
 
