@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <imgui.h>
 
 
 namespace Hana
@@ -86,9 +87,15 @@ namespace Hana
 		{
 			m_scene->Draw();
 
-			const sf::String speedString{ "SPEED: " + std::to_string(m_timeSpeedupFactor) };
-			const sf::Text speedText{ m_arialFont, speedString };
-			m_window.draw(speedText);
+
+			//ImGui
+			ImGui::Begin("Options");
+			ImGui::End();
+
+
+			//const sf::String speedString{ "SPEED: " + std::to_string(m_timeSpeedupFactor) };
+			//const sf::Text speedText{ m_arialFont, speedString };
+			//m_window.draw(speedText);
 
 			m_window.display();
 		}
