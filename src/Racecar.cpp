@@ -112,9 +112,9 @@ namespace Hana
 		//}
 //		else if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_TURN_RIGHT))
 		//else if (m_inputs[RACECAR_INPUT::STEERING] > 0.25f)
-		{
-			m_currentSteeringAngle += m_inputs[RACECAR_INPUT::STEERING] * m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
-		}
+		//{
+			//m_currentSteeringAngle += m_inputs[RACECAR_INPUT::STEERING] * m_steeringSpeed * Global::FIXED_UPDATE_TIMESTEP;
+		//}
 		//else
 		//{
 		//	//Centre steering
@@ -124,8 +124,9 @@ namespace Hana
 		//	//Snap to 0 if close
 		//	if (std::abs(m_currentSteeringAngle) < 0.05f) { m_currentSteeringAngle = 0.0f; }
 		//}
+		//m_currentSteeringAngle = std::clamp(m_currentSteeringAngle, -m_maxSteeringAngle, m_maxSteeringAngle);
 
-		m_currentSteeringAngle = std::clamp(m_currentSteeringAngle, -m_maxSteeringAngle, m_maxSteeringAngle);
+		m_currentSteeringAngle = m_inputs[RACECAR_INPUT::STEERING] * m_maxSteeringAngle;
 		
 //		if (sf::Keyboard::isKeyPressed(Global::SFML_KEY_ACCELERATE) XOR sf::Keyboard::isKeyPressed(Global::SFML_KEY_BRAKE))
 		for (std::size_t i{ 0 }; i < 4; ++i)
@@ -297,7 +298,7 @@ namespace Hana
 
 	float Racecar::RaycastWithTrackForNeuralNetwork(const b2WorldId& _world, const Track& _track, const b2Vec2 _dir) const
 	{
-		constexpr float maxRayLength{ 1000.0f };
+		constexpr float maxRayLength{ 300.0f };
 
 		const b2Vec2 start{ GetPosition() };
 		const b2Vec2 translation{ b2Normalize(b2Body_GetWorldVector(m_physicsBody, _dir)) * maxRayLength };
@@ -307,7 +308,7 @@ namespace Hana
 
 		const b2RayResult result{ b2World_CastRayClosest(_world, start, translation, filter) };
 
-		return (result.hit) ? (1.0f - result.fraction) : (0.0f);
+		return (result.hit) ? (result.fraction) : (1.0f);
 	}
 
 }

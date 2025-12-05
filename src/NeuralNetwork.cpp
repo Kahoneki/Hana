@@ -73,8 +73,11 @@ namespace Hana
 				//Loop through all neurons in the previous layer
 				for (std::size_t prevLayerNeuronCounter{ 0 }; prevLayerNeuronCounter < m_layerSizes[layerCounter - 1]; ++prevLayerNeuronCounter)
 				{
-					const float mutationAmount{ Global::RandomFloat(-1, 1) * _mutationStrength };
-					m_weights[layerCounter][neuronCounter][prevLayerNeuronCounter] += mutationAmount;
+					if (Global::RandomFloat(0.0f, 1.0f) < _mutationRate)
+					{
+						const float mutationAmount{ Global::RandomFloat(-1, 1) * _mutationStrength };
+						m_weights[layerCounter][neuronCounter][prevLayerNeuronCounter] += mutationAmount;
+					}
 				}
 			}
 		}
@@ -84,8 +87,11 @@ namespace Hana
 		{
 			for (std::size_t neuronCounter{ 0 }; neuronCounter < m_layerSizes[layerCounter]; ++neuronCounter)
 			{
-				const float mutationAmount{ Global::RandomFloat(-1, 1) * _mutationStrength };
-				m_biases[layerCounter][neuronCounter] += mutationAmount;
+				if (Global::RandomFloat(0.0f, 1.0f) < _mutationRate)
+				{
+					const float mutationAmount{ Global::RandomFloat(-1, 1) * _mutationStrength };
+					m_biases[layerCounter][neuronCounter] += mutationAmount;
+				}
 			}
 		}
 	}
