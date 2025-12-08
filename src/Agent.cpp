@@ -5,7 +5,7 @@ namespace Hana
 {
 
 	Agent::Agent(const std::size_t _numInputs, const b2WorldId _world)
-		: m_neuralNetwork(_numInputs, { 16 }, 2)
+		: m_neuralNetwork(_numInputs, { 20 }, 2)
 	{
 		m_racecar = std::move(Racecar(_world));
 		m_fitness = 0.0f;
@@ -41,7 +41,7 @@ namespace Hana
 		{
 			//Get the amount the ai has managed to get to the next checkpoint and use it as the fractional part of the fitness
 			const float distanceBetweenCurrentAndNextCheckpoint{ b2Distance(_track.GetNode(m_currentCheckpoint).centreWorldPosition, _track.GetNode(nextCheckpoint).centreWorldPosition) };
-			const float fitnessFrac{ 1 - (distanceToNextCheckpoint / distanceBetweenCurrentAndNextCheckpoint) };
+			const float fitnessFrac{ std::max(0.0f, 1 - (distanceToNextCheckpoint / distanceBetweenCurrentAndNextCheckpoint)) };
 			newFitness = static_cast<std::uint32_t>(newFitness) + fitnessFrac;
 		}
 

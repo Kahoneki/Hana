@@ -19,13 +19,13 @@ namespace Hana
 		: m_window(_window)
 		{
 			m_numAgents = 100;
-			m_numInputs = 10;
+			m_numInputs = 12;
 			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs);
 			m_timePerGeneration = 60.0f;
 			m_timeSpeedupFactor = 1.0f;
-			m_elitismRatio = 0.05f;
-			m_mutationRate = 0.15f;
-			m_mutationStrength = 0.3f;
+			m_elitismRatio = 0.10f;
+			m_mutationRate = 0.2f;
+			m_mutationStrength = 0.15f;
 			m_tournamentSize = 5;
 			m_timestepAccumulator = 0.0f;
 
@@ -100,6 +100,10 @@ namespace Hana
 			ImGui::SeparatorText("Evolution Settings");
 			ImGui::SliderFloat("Mutation Rate", &m_mutationRate, 0.0f, 1.0f, "%.2f");
 			ImGui::SliderFloat("Mutation Strength", &m_mutationStrength, 0.0f, 2.0f, "%.2f");
+			ImGui::SliderFloat("Elitism Ratio", &m_elitismRatio, 0.0f, 1.0f, "%.2f");
+			int tournamentSizeSigned{ static_cast<int>(m_tournamentSize) }; //shoutout imgui for this one
+			ImGui::SliderInt("Tournament Size", &tournamentSizeSigned, 0, 20);
+			m_tournamentSize = tournamentSizeSigned;
 
 			ImGui::SeparatorText("Stats");
 			ImGui::Text("Current Generation: %zu", m_currentGeneration);
@@ -180,6 +184,8 @@ namespace Hana
 				inputs[7] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
 				inputs[8] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
 				inputs[9] = agent.m_racecar.GetLocalAngularVelocity();
+				inputs[10] = agent.m_racecar.GetInput(RACECAR_INPUT::ACCELERATION);
+				inputs[11] = agent.m_racecar.GetInput(RACECAR_INPUT::STEERING);
 
 				std::vector<float> outputs(2);
 				agent.m_neuralNetwork.Process(inputs, outputs);
@@ -227,7 +233,7 @@ namespace Hana
 				for (std::uint32_t tournamentAgent{ 0 }; tournamentAgent < m_tournamentSize; ++tournamentAgent)
 				{
 					const std::size_t agentIndex{ Global::RandomIndex(0, m_numAgents - 1) };
-					const std::uint32_t agentFitness{ static_cast<std::uint32_t>(m_scene->m_agents[agentIndex].m_fitness) };
+					const float agentFitness{ m_scene->m_agents[agentIndex].m_fitness };
 					if (agentFitness > bestFitnessFound)
 					{
 						bestFitnessFound = agentFitness;
