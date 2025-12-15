@@ -2,27 +2,31 @@
 #include "TimeManager.h"
 
 #include <iostream>
+#include <thread>
 
 
 namespace Hana
 {
 
-	Scene::Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs)
+	Scene::Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs, const float _timePerGeneration)
 	: m_window(_window)
 	{
 		b2WorldDef worldDef{ b2DefaultWorldDef() };
 		worldDef.gravity = { 0, 0 }; //top-down so no gravity !!
+		worldDef.workerCount = std::thread::hardware_concurrency();
 
 		m_world = b2CreateWorld(&worldDef);
 
 		m_agents.reserve(_numAgents);
 		for (std::size_t i{ 0 }; i < _numAgents; ++i)
 		{
-			m_agents.emplace_back(_numInputs, m_world);
+			m_agents.emplace_back(_numInputs, m_world, _timePerGeneration);
 		}
 		
-		m_camera.setSize({ 4800, 2700 }); //16:9
-		m_camera.setCenter({ 600, 1200 });
+//		m_camera.setSize({ 4800, 2700 }); //16:9
+//		m_camera.setCenter({ 600, 1200 });
+		m_camera.setSize({ 4800 * 4, 2700 * 4 }); //16:9
+		m_camera.setCenter({ 0,0 });
 		m_followBestAgentBaseCameraSize = { 1280, 720 };
 		_window.setView(m_camera);
 

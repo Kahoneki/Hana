@@ -12,7 +12,7 @@ namespace Hana
 	{
 	public:
 		explicit Agent() = default;
-		explicit Agent(const std::size_t _numInputs, const b2WorldId _world);
+		explicit Agent(const std::size_t _numInputs, const b2WorldId _world, const float _timePerGeneration);
 		~Agent() = default;
 
 		//Resets the racecar, current checkpoint, and fitness value
@@ -20,11 +20,16 @@ namespace Hana
 		void Reset(const Track& _track);
 		
 		void UpdateFitness(const Track& _track);
+
+		float m_timePerGeneration;
+		float m_currentTime; //time into the current generation
 		
 		Racecar m_racecar;
 		NeuralNetwork m_neuralNetwork;
 		float m_fitness;
 		std::uint32_t m_currentCheckpoint;
+
+		bool m_finished; //passed the finish line
 
 		bool m_dead; //If true, this agent is skipped in the simulation
 		float m_stuckTimeout; //The amount of time the car can be stuck for before m_dead getting set to true

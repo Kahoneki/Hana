@@ -298,7 +298,7 @@ namespace Hana
 
 	float Racecar::RaycastWithTrackForNeuralNetwork(const b2WorldId& _world, const Track& _track, const b2Vec2 _dir) const
 	{
-		constexpr float maxRayLength{ 300.0f };
+		constexpr float maxRayLength{ 50.0f };
 
 		const b2Vec2 start{ GetPosition() };
 		const b2Vec2 translation{ b2Normalize(b2Body_GetWorldVector(m_physicsBody, _dir)) * maxRayLength };
@@ -308,7 +308,7 @@ namespace Hana
 
 		const b2RayResult result{ b2World_CastRayClosest(_world, start, translation, filter) };
 
-		return (result.hit) ? (result.fraction) : (1.0f);
+		return (result.hit) ? (1.0f - result.fraction) : (0.0f);
 	}
 
 }

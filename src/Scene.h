@@ -23,7 +23,7 @@ namespace Hana
 
 
 	protected:
-		explicit Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs);
+		explicit Scene(sf::RenderWindow& _window, const std::size_t _numAgents, const std::size_t _numInputs, const float _timePerGeneration);
 		
 		virtual void FixedUpdate() final;
 		virtual void Draw() final;

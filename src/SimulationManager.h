@@ -18,10 +18,10 @@ namespace Hana
 		explicit inline SimulationManager(sf::RenderWindow& _window)
 		: m_window(_window)
 		{
-			m_numAgents = 100;
+			m_numAgents = 500;
 			m_numInputs = 12;
-			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs);
-			m_timePerGeneration = 60.0f;
+			m_timePerGeneration = 100.0f;
+			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs, m_timePerGeneration);
 			m_timeSpeedupFactor = 1.0f;
 			m_elitismRatio = 0.10f;
 			m_mutationRate = 0.2f;
@@ -98,8 +98,8 @@ namespace Hana
 			}
 			
 			ImGui::SeparatorText("Evolution Settings");
-			ImGui::SliderFloat("Mutation Rate", &m_mutationRate, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Mutation Strength", &m_mutationStrength, 0.0f, 2.0f, "%.2f");
+			ImGui::SliderFloat("Mutation Rate", &m_mutationRate, 0.0f, 1.0f, "%.4f");
+			ImGui::SliderFloat("Mutation Strength", &m_mutationStrength, 0.0f, 2.0f, "%.4f");
 			ImGui::SliderFloat("Elitism Ratio", &m_elitismRatio, 0.0f, 1.0f, "%.2f");
 			int tournamentSizeSigned{ static_cast<int>(m_tournamentSize) }; //shoutout imgui for this one
 			ImGui::SliderInt("Tournament Size", &tournamentSizeSigned, 0, 20);
@@ -108,6 +108,7 @@ namespace Hana
 			ImGui::SeparatorText("Stats");
 			ImGui::Text("Current Generation: %zu", m_currentGeneration);
 			ImGui::Text("Best Fitness: %.4f", m_scene->m_agents[0].m_fitness);
+			ImGui::Text("Best Time: %.4f", m_scene->m_agents[0].m_currentTime);
 			ImGui::Text("Worst Fitness: %.4f", m_scene->m_agents[m_scene->m_agents.size() - 1].m_fitness);
 
 			ImGui::SeparatorText("Camera");
@@ -173,19 +174,32 @@ namespace Hana
 				const b2Rot angle{ agent.m_racecar.GetRotation() };
 				const b2Vec2 linearVelocity{ agent.m_racecar.GetLocalLinearVelocity() };
 
+				const std::uint32_t nextNodeIndex{ (agent.m_currentCheckpoint + 1) % m_scene->m_track.GetNumNodes() };
+				const b2Vec2 nextCheckpointPos{ m_scene->m_track.GetNode(nextNodeIndex).centreWorldPosition };
+				const b2Vec2 vecToNextCheckpoint{ nextCheckpointPos - pos };
+				const float c = cos(-b2Rot_GetAngle(angle));
+				const float s = sin(-b2Rot_GetAngle(angle));
+				const b2Vec2 localVecToNextCheckpoint{
+					vecToNextCheckpoint.x * c - vecToNextCheckpoint.y * s,
+					vecToNextCheckpoint.x * s + vecToNextCheckpoint.y * c
+				};
+				const b2Vec2 directionToNextCheckpoint{ b2Normalize(localVecToNextCheckpoint) };
+				
 				std::vector<float> inputs(m_numInputs);
-				inputs[0] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -1.0f, 0.0f });
-				inputs[1] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.7f, -0.7f });
-				inputs[2] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.38f, -0.92f });
-				inputs[3] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.0f, -1.0f });
-				inputs[4] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.38f, -0.92f });
-				inputs[5] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.7f, -0.7f });
-				inputs[6] = agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 1.0f, 0.0f });
-				inputs[7] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
-				inputs[8] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
-				inputs[9] = agent.m_racecar.GetLocalAngularVelocity();
-				inputs[10] = agent.m_racecar.GetInput(RACECAR_INPUT::ACCELERATION);
-				inputs[11] = agent.m_racecar.GetInput(RACECAR_INPUT::STEERING);
+				inputs[0] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -1.0f, 0.0f });
+				inputs[1] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.7f, -0.7f });
+//				inputs[2] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { -0.38f, -0.92f });
+				inputs[2] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.0f, -1.0f });
+//				inputs[4] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.38f, -0.92f });
+				inputs[3] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 0.7f, -0.7f });
+				inputs[4] = 1.0f - agent.m_racecar.RaycastWithTrackForNeuralNetwork(m_scene->m_world, m_scene->m_track, { 1.0f, 0.0f });
+				inputs[5] = linearVelocity.x / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+				inputs[6] = linearVelocity.y / agent.m_racecar.GetMaxLinearVelocityMagnitude();
+				inputs[7] = agent.m_racecar.GetLocalAngularVelocity();
+				inputs[8] = agent.m_racecar.GetInput(RACECAR_INPUT::ACCELERATION);
+				inputs[9] = agent.m_racecar.GetInput(RACECAR_INPUT::STEERING);
+				inputs[10] = directionToNextCheckpoint.x;
+				inputs[11] = directionToNextCheckpoint.y;
 
 				std::vector<float> outputs(2);
 				agent.m_neuralNetwork.Process(inputs, outputs);
@@ -197,10 +211,29 @@ namespace Hana
 			}
 			b2World_Step(m_scene->m_world, Global::FIXED_UPDATE_TIMESTEP, 4);
 
-			//Update the fitness of all agents
+			//Update the fitness of all alive agents
 			for (Agent& agent : m_scene->m_agents)
 			{
+//				if (agent.m_dead)
+//				{
+//					continue;
+//				}
+
+				const float oldFitness{ agent.m_fitness };
 				agent.UpdateFitness(m_scene->m_track);
+
+//				if (agent.m_fitness > oldFitness)
+//				{
+//					agent.m_timeSinceLastFitnessImprovement = 0.0f;
+//				}
+//				else
+//				{
+//					agent.m_timeSinceLastFitnessImprovement += Global::FIXED_UPDATE_TIMESTEP;
+//				}
+//				if (agent.m_timeSinceLastFitnessImprovement > agent.m_stuckTimeout)
+//				{
+//					agent.m_dead = true;
+//				}
 			}
 		}
 
@@ -215,6 +248,7 @@ namespace Hana
 				return _a.m_fitness > _b.m_fitness;
 			});
 			std::cout << "Best fitness: " << m_scene->m_agents[0].m_fitness << std::endl;
+			std::cout << "Best time: " << m_scene->m_agents[0].m_currentTime << std::endl;
 			std::cout << "Worst fitness: " << m_scene->m_agents[m_scene->m_agents.size() - 1].m_fitness << std::endl;
 			std::cout << std::endl;
 
