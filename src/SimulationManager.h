@@ -4,9 +4,11 @@
 #include "TimeManager.h"
 
 #include <algorithm>
-#include <iostream>
-#include <imgui.h>
+#include <fstream>
 #include <imgui-SFML.h>
+#include <imgui.h>
+#include <iostream>
+#include <numeric>
 
 
 namespace Hana
@@ -18,7 +20,7 @@ namespace Hana
 		explicit inline SimulationManager(sf::RenderWindow& _window)
 		: m_window(_window)
 		{
-			m_numAgents = 500;
+			m_numAgents = 100;
 			m_numInputs = 12;
 			m_timePerGeneration = 100.0f;
 			m_scene = std::make_unique<SceneType>(_window, m_numAgents, m_numInputs, m_timePerGeneration);

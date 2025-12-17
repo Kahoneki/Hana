@@ -7,7 +7,7 @@ namespace Hana
 {
 
 	Agent::Agent(const std::size_t _numInputs, const b2WorldId _world, const float _timePerGeneration)
-		: m_neuralNetwork(_numInputs, { 20 }, 2)
+		: m_neuralNetwork(_numInputs, { 8 }, 2)
 	{
 		m_timePerGeneration = _timePerGeneration;
 		m_racecar = std::move(Racecar(_world));

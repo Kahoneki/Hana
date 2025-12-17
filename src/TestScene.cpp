@@ -50,11 +50,11 @@ namespace Hana
 
 		m_track.AddNode({ {-150.0f, 130.0f}, 16.0f });
 		m_track.AddNode({ {-110.0f, 150.0f}, 15.0f });
-		m_track.AddNode({ {-80.0f, 110.0f}, 15.0f });
+//		m_track.AddNode({ {-80.0f, 110.0f}, 15.0f });
 		m_track.AddNode({ {-50.0f, 130.0f}, 15.0f });
-		m_track.AddNode({ {-20.0f, 90.0f}, 15.0f });
+//		m_track.AddNode({ {-20.0f, 90.0f}, 15.0f });
 		m_track.AddNode({ {10.0f, 110.0f}, 16.0f });
-		m_track.AddNode({ {40.0f, 70.0f}, 18.0f });
+//		m_track.AddNode({ {40.0f, 70.0f}, 18.0f });
 		
 		m_track.Construct(m_world);
 	}
